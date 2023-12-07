@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from datetime import datetime, timedelta
 from pytz import timezone
-import json
 
 from .models import VendorModel, PurchaseOrderModel, HistoricPerformanceModel
 from .serializers import VendorSerializer, PurchaseOrderSerializer, HistoricPerformanceSerializer
