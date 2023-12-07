@@ -14,7 +14,6 @@ class VendorModel(models.Model):
 
 class PurchaseOrderModel(models.Model):
     status_list = [('pending', 'Pending'),('completed', 'Completed')]
-
     po_id = models.CharField(max_length=255, primary_key=True)
     vendor = models.ForeignKey(to=VendorModel, on_delete=models.CASCADE)
     order_date = models.DateTimeField()
@@ -28,7 +27,6 @@ class PurchaseOrderModel(models.Model):
 
 @receiver(pre_save, sender=PurchaseOrderModel)
 def po_status_change(sender, instance, **kwargs):
-    print(instance.po_id)
     try:
         orignal_po = PurchaseOrderModel.objects.get(po_id=instance.po_id)
         #create historic_performace_row for the vendor
@@ -46,7 +44,7 @@ def po_status_change(sender, instance, **kwargs):
 class HistoricPerformanceModel(models.Model):
     id = models.AutoField(primary_key=True)
     vendor = models.ForeignKey(to=VendorModel, on_delete=models.CASCADE)
-    date = models.DateTimeField()
+    date = models.DateTimeField(null=True)
     total_deliveries = models.IntegerField(default=0)
     on_time_delivery_rate = models.FloatField(default=0)
     quality_rating_avg = models.FloatField(default=0)

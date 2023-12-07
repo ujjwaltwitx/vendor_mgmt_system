@@ -1,6 +1,10 @@
 from django.shortcuts import render
 from rest_framework.views import APIView, status
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from datetime import datetime, timedelta
+from pytz import timezone
+import json
 
 from .models import VendorModel, PurchaseOrderModel, HistoricPerformanceModel
 from .serializers import VendorSerializer, PurchaseOrderSerializer, HistoricPerformanceSerializer
@@ -30,7 +34,9 @@ class VendorView(APIView):
     def post(self, request):
         serializer = VendorSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            vendor_instance = serializer.save()
+            historic_performance_model = HistoricPerformanceModel.objects.create(vendor=vendor_instance)
+            historic_performance_model.save()
             return Response("Object Saved", status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -97,8 +103,20 @@ class PurchaseOrderView(APIView):
             return Response("Purchase Order not found", status=status.HTTP_204_NO_CONTENT)
 
 
-    
-    
-            
+@api_view(['GET'])
+def get_performance(request, vendor_id):
+    performace = HistoricPerformanceModel.objects.get(vendor_id=vendor_id)
+    serializer = HistoricPerformanceSerializer(performace)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@api_view(['PUT'])
+def update_ack(request, po_id):
+    tz = timezone("UTC")
+    try:
+        po = PurchaseOrderModel.objects.get(po_id = po_id)
+        po.acknowledgement_date = datetime.now(tz=tz);
+        po.save()
+        return Response("Acknowledgement updated successfully")
+    except PurchaseOrderModel.DoesNotExist:
+        return Response("Purchase Order Not found", status=status.HTTP_400_BAD_REQUEST)
